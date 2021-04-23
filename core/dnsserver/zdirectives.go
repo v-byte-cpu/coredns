@@ -53,6 +53,7 @@ var Directives = []string{
 	"loop",
 	"forward",
 	"grpc",
+	"https",
 	"erratic",
 	"whoami",
 	"on",
