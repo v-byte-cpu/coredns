@@ -50,7 +50,6 @@ func packMsg(t *testing.T, msg *dns.Msg) []byte {
 }
 
 func TestDNSClient(t *testing.T) {
-	t.Parallel()
 	callCount := 0
 	expectedMsg := newExpectedDNSMsg()
 	httpClient := mockHTTPClientFunc(func(req *http.Request) (resp *http.Response, err error) {
@@ -87,7 +86,6 @@ func TestDNSClient(t *testing.T) {
 }
 
 func TestDNSClientNewRequestError(t *testing.T) {
-	t.Parallel()
 	invalidURL := "https://example.com/\t\n"
 	httpClient := mockHTTPClientFunc(func(req *http.Request) (resp *http.Response, err error) {
 		t.Fatal("http client must not be called")
@@ -100,7 +98,6 @@ func TestDNSClientNewRequestError(t *testing.T) {
 }
 
 func TestDNSClientHttpClientError(t *testing.T) {
-	t.Parallel()
 	httpClient := mockHTTPClientFunc(func(req *http.Request) (resp *http.Response, err error) {
 		err = errors.New("http error")
 		resp = &http.Response{
@@ -116,7 +113,6 @@ func TestDNSClientHttpClientError(t *testing.T) {
 }
 
 func TestDNSClientHttpStatusError(t *testing.T) {
-	t.Parallel()
 	httpClient := mockHTTPClientFunc(func(req *http.Request) (resp *http.Response, err error) {
 		resp = &http.Response{
 			Body:       ioutil.NopCloser(bytes.NewReader(packMsg(t, newExpectedDNSMsg()))),
@@ -145,7 +141,6 @@ func (r *errReader) Read(p []byte) (n int, err error) {
 }
 
 func TestDNSClientResponseReadError(t *testing.T) {
-	t.Parallel()
 	httpClient := mockHTTPClientFunc(func(req *http.Request) (resp *http.Response, err error) {
 		reader := &errReader{
 			delegate: bytes.NewReader(packMsg(t, newExpectedDNSMsg())),
@@ -164,7 +159,6 @@ func TestDNSClientResponseReadError(t *testing.T) {
 }
 
 func TestDNSClientMsgUnpackError(t *testing.T) {
-	t.Parallel()
 	httpClient := mockHTTPClientFunc(func(req *http.Request) (resp *http.Response, err error) {
 		resp = &http.Response{
 			Body:       ioutil.NopCloser(strings.NewReader("def")),
@@ -179,8 +173,6 @@ func TestDNSClientMsgUnpackError(t *testing.T) {
 }
 
 func TestDNSClientLargeResponseError(t *testing.T) {
-	t.Parallel()
-
 	//create large buffer with the correct DNS message at the beginning
 	var buf bytes.Buffer
 	dnsMsg := packMsg(t, newExpectedDNSMsg())
@@ -216,7 +208,6 @@ func (c *mockDNSClient) Query(ctx context.Context, dnsreq []byte) (result *dns.M
 }
 
 func TestLoadBalanceDNSClient(t *testing.T) {
-	t.Parallel()
 	client1 := &mockDNSClient{reqBody: []byte("abc"), t: t}
 	clients := []dnsClient{client1}
 	lbClient := newLoadBalanceDNSClient(clients)
@@ -228,7 +219,6 @@ func TestLoadBalanceDNSClient(t *testing.T) {
 }
 
 func TestLoadBalanceDNSClientError(t *testing.T) {
-	t.Parallel()
 	client1 := &mockDNSClient{reqBody: []byte("abc"), t: t, err: errors.New("client error")}
 	clients := []dnsClient{client1}
 	lbClient := newLoadBalanceDNSClient(clients)
@@ -239,7 +229,6 @@ func TestLoadBalanceDNSClientError(t *testing.T) {
 }
 
 func TestLoadBalanceDNSClientRetry(t *testing.T) {
-	t.Parallel()
 	client1 := &mockDNSClient{reqBody: []byte("abc"), t: t, err: errors.New("client error")}
 	client2 := &mockDNSClient{reqBody: []byte("abc"), t: t}
 	clients := []dnsClient{client1, client2}
@@ -253,7 +242,6 @@ func TestLoadBalanceDNSClientRetry(t *testing.T) {
 }
 
 func TestLoadBalanceDNSClientPolicy(t *testing.T) {
-	t.Parallel()
 	client1 := &mockDNSClient{reqBody: []byte("abc"), t: t}
 	client2 := &mockDNSClient{reqBody: []byte("abc"), t: t}
 	clients := []dnsClient{client1, client2}
@@ -273,8 +261,6 @@ func TestLoadBalanceDNSClientPolicy(t *testing.T) {
 }
 
 func TestLoadBalanceDNSClientMaxFails(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name             string
 		maxFails         int
@@ -315,7 +301,6 @@ func TestLoadBalanceDNSClientMaxFails(t *testing.T) {
 }
 
 func TestDefaultNewLoadBalanceDNSClient(t *testing.T) {
-	t.Parallel()
 	client1 := &mockDNSClient{reqBody: []byte("abc"), t: t}
 	client2 := &mockDNSClient{reqBody: []byte("abc"), t: t}
 	clients := []dnsClient{client1, client2}

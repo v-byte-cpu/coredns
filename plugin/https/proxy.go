@@ -49,7 +49,7 @@ type dohDNSClient struct {
 	url    string
 }
 
-func (c *dohDNSClient) Query(ctx context.Context, dnsreq []byte) (result *dns.Msg, err error) {
+func (c *dohDNSClient) Query(ctx context.Context, dnsreq []byte) (r *dns.Msg, err error) {
 	var req *http.Request
 	if req, err = http.NewRequestWithContext(ctx, "POST", c.url, bytes.NewReader(dnsreq)); err != nil {
 		return
@@ -81,8 +81,8 @@ func (c *dohDNSClient) Query(ctx context.Context, dnsreq []byte) (result *dns.Ms
 	if len(body) > maxDNSMessageSize {
 		return nil, errResponseTooLarge
 	}
-	result = new(dns.Msg)
-	err = result.Unpack(body)
+	r = new(dns.Msg)
+	err = r.Unpack(body)
 	return
 }
 

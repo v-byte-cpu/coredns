@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const from = "."
-
 func newRequestDNSMsg() *dns.Msg {
 	return &dns.Msg{Question: []dns.Question{
 		{
@@ -24,12 +22,11 @@ func newRequestDNSMsg() *dns.Msg {
 }
 
 func TestHTTPS(t *testing.T) {
-	t.Parallel()
 	dnsMsg := newRequestDNSMsg()
 	dnsdata, err := dnsMsg.Pack()
 	require.NoError(t, err)
 	dnsClient := &mockDNSClient{reqBody: dnsdata, t: t}
-	h := newHTTPS(from, dnsClient)
+	h := newHTTPS(".", dnsClient)
 	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	status, err := h.ServeDNS(context.Background(), rec, dnsMsg)
@@ -55,13 +52,12 @@ func (w *mockDNSResponseWriter) WriteMsg(msg *dns.Msg) error {
 }
 
 func TestHTTPSMsgPackError(t *testing.T) {
-	t.Parallel()
 	dnsMsg := &dns.Msg{MsgHdr: dns.MsgHdr{Rcode: 0xFFFFF}}
 	dnsClient := mockDNSClientFunc(func(_ context.Context, _ []byte) (result *dns.Msg, err error) {
 		t.Fatal("dns client must not be called")
 		return
 	})
-	h := newHTTPS(from, dnsClient)
+	h := newHTTPS(".", dnsClient)
 	w := &mockDNSResponseWriter{
 		ResponseWriter: &test.ResponseWriter{},
 		writeFunc: func(*dns.Msg) (err error) {
@@ -76,12 +72,11 @@ func TestHTTPSMsgPackError(t *testing.T) {
 }
 
 func TestHTTPSDNSClientError(t *testing.T) {
-	t.Parallel()
 	dnsMsg := newRequestDNSMsg()
 	dnsClient := mockDNSClientFunc(func(_ context.Context, _ []byte) (*dns.Msg, error) {
 		return newExpectedDNSMsg(), errors.New("dns client error")
 	})
-	h := newHTTPS(from, dnsClient)
+	h := newHTTPS(".", dnsClient)
 	w := &mockDNSResponseWriter{
 		ResponseWriter: &test.ResponseWriter{},
 		writeFunc: func(*dns.Msg) (err error) {
@@ -96,12 +91,11 @@ func TestHTTPSDNSClientError(t *testing.T) {
 }
 
 func TestHTTPSResponseWriterError(t *testing.T) {
-	t.Parallel()
 	dnsMsg := newRequestDNSMsg()
 	dnsClient := mockDNSClientFunc(func(_ context.Context, _ []byte) (*dns.Msg, error) {
 		return newExpectedDNSMsg(), nil
 	})
-	h := newHTTPS(from, dnsClient)
+	h := newHTTPS(".", dnsClient)
 	w := &mockDNSResponseWriter{
 		ResponseWriter: &test.ResponseWriter{},
 		writeFunc: func(*dns.Msg) (err error) {
@@ -114,14 +108,13 @@ func TestHTTPSResponseWriterError(t *testing.T) {
 }
 
 func TestHTTPSDNSResponseStateNotMatch(t *testing.T) {
-	t.Parallel()
 	dnsMsg := newRequestDNSMsg()
 	dnsClient := mockDNSClientFunc(func(_ context.Context, _ []byte) (*dns.Msg, error) {
 		result := newExpectedDNSMsg()
 		result.Question[0].Name = "other.domain."
 		return result, nil
 	})
-	h := newHTTPS(from, dnsClient)
+	h := newHTTPS(".", dnsClient)
 	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	_, err := h.ServeDNS(context.Background(), rec, dnsMsg)

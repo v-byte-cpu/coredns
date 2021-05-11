@@ -2,11 +2,11 @@
 
 ## Name
 
-*https* - facilitates proxying DNS messages to upstream resolvers via DoH protocol.
+*https* - facilitates proxying DNS messages to upstream resolvers using DoH.
 
 ## Description
 
-The *https* plugin supports DoH.
+The *https* plugin performs DNS-over-HTTPS proxying. See [RFC 8484](https://tools.ietf.org/html/rfc8484).
 
 This plugin can only be used once per Server Block.
 
@@ -51,8 +51,6 @@ https FROM TO... {
 
 * `policy` specifies the policy to use for selecting upstream servers. The default is `random`.
 
-Also note the TLS config is "global" for the whole https proxy if you need a different
-`tls` for different upstreams you're out of luck.
 
 ## Metrics
 

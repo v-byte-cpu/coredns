@@ -25,7 +25,7 @@ func setup(c *caddy.Controller) error {
 	dnsClient := setupDNSClient(conf)
 	h := newHTTPS(conf.from, dnsClient, withExcept(conf.except))
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		h.Next = next // Set the Next field, so the plugin chaining works.
+		h.Next = next
 		return h
 	})
 

@@ -7,7 +7,6 @@ import (
 )
 
 func TestRandomPolicy(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name     string
 		poolLen  int
@@ -69,7 +68,6 @@ func TestRandomPolicy(t *testing.T) {
 }
 
 func TestRoundRobinPolicy(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name     string
 		poolLen  int
@@ -130,7 +128,6 @@ func TestRoundRobinPolicy(t *testing.T) {
 }
 
 func TestSequentialPolicy(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name     string
 		poolLen  int

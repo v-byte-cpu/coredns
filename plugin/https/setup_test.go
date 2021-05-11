@@ -10,7 +10,6 @@ import (
 )
 
 func TestParseConfig(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name           string
 		input          string
@@ -108,7 +107,6 @@ func TestParseConfig(t *testing.T) {
 }
 
 func TestParseConfigError(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name  string
 		input string
