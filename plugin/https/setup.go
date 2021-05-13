@@ -43,7 +43,7 @@ func setupDNSClient(conf *httpsConfig) dnsClient {
 
 	clients := make([]dnsClient, len(conf.toURLs))
 	for i, toURL := range conf.toURLs {
-		clients[i] = newDoHDNSClient(httpClient, toURL)
+		clients[i] = newMetricDNSClient(newDoHDNSClient(httpClient, toURL), toURL)
 	}
 
 	var opts []lbDNSClientOption

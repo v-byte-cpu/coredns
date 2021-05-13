@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/miekg/dns"
@@ -86,6 +87,34 @@ func (c *dohDNSClient) Query(ctx context.Context, dnsreq []byte) (r *dns.Msg, er
 	return
 }
 
+type metricDNSClient struct {
+	client dnsClient
+	addr   string
+}
+
+func newMetricDNSClient(client dnsClient, addr string) *metricDNSClient {
+	return &metricDNSClient{client, addr}
+}
+
+func (c *metricDNSClient) Query(ctx context.Context, dnsreq []byte) (r *dns.Msg, err error) {
+	start := time.Now()
+
+	// decorator pattern
+	if r, err = c.client.Query(ctx, dnsreq); err != nil {
+		return
+	}
+
+	rc, ok := dns.RcodeToString[r.Rcode]
+	if !ok {
+		rc = strconv.Itoa(r.Rcode)
+	}
+
+	RequestCount.WithLabelValues(c.addr).Add(1)
+	RcodeCount.WithLabelValues(rc, c.addr).Add(1)
+	RequestDuration.WithLabelValues(c.addr).Observe(time.Since(start).Seconds())
+	return
+}
+
 func newLoadBalanceDNSClient(clients []dnsClient, opts ...lbDNSClientOption) *lbDNSClient {
 	c := &lbDNSClient{
 		p:        newRandomPolicy(),
@@ -131,12 +160,12 @@ func withLbMaxFails(maxFails int) lbDNSClientOption {
 	}
 }
 
-func (c *lbDNSClient) Query(ctx context.Context, dnsreq []byte) (result *dns.Msg, err error) {
+func (c *lbDNSClient) Query(ctx context.Context, dnsreq []byte) (r *dns.Msg, err error) {
 	ids := c.p.List(len(c.clients))
 	for i := 0; i < c.maxFails; i++ {
 		ctx, cancel := context.WithTimeout(ctx, c.timeout)
 		defer cancel()
-		if result, err = c.clients[ids[i]].Query(ctx, dnsreq); err == nil {
+		if r, err = c.clients[ids[i]].Query(ctx, dnsreq); err == nil {
 			return
 		}
 		cancel()
